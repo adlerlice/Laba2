@@ -1,255 +1,157 @@
 ﻿#include <iostream>
-
+#include <math.h>
 using namespace std;
-
-void sys_cin(float** arr, float* y, int length);
-
-void sys_out(float** arr, float* y, int length);
-
-float* gausses_method(float** arr, float* y, int length);
-
-/*
-
-Тестовые данные просто для проверки работоспособности:
-
-3
-
-2
-
-4
-
-1
-
-5
-
-2
-
-1
-
-2
-
-3
-
-4
-
-36
-
-47
-
-37
-
-Вставлять поочерёдно ну ты поняла ок
-
-*/
-
+void fill_arr(int** arr, int rows, int cols, int a, int b);
+void red_area_analyze(int** arr, int rows);
+void red_area_show_element(int** arr, int rows, int& min, int& imin, int& jmin);
+void green_area_analyze(int** arr, int cols);
+void green_area_show_element(int** arr, int cols, int a, int& max, int& imax, int& jmax);
+void modification(int** arr, int cols, int a, int max, int min, int jmax, int imax, int imin, int jmin, int rows);
 int main()
-
 {
-
-	setlocale(LC_ALL, "");
-
-	float** arr, * y, * x;
-
-	int length;
-
-	cout << "Введите количество уравнений: ";
-
-	cin >> length;
-
-	arr = new float* [length];
-
-	y = new float[length];
-
-	sys_cin(arr, y, length);
-
-	sys_out(arr, y, length);
-
-	//ineedmoreammo!!11!
-
-	x = gausses_method(arr, y, length);
-
-	for (int i = 0; i < length; i++)
-
-		cout << "x[" << i << "]=" << x[i] << endl;
-
-	return 0;
+	int rows, cols, a, b;
+	cout << "Enter left border a= ";
+	cin >> a;
+	cout << "Enter right border b= ";          // Левая и правая граница значений в матрице
+	cin >> b;
+	int max = a;
+	int imax = 0, jmax = 0;
+	int imin = 0, jmin = 0;
+	int min = INT_MAX;
+	cout << "Enter number of rows = ";
+	cin >> rows;
+	cout << "\n";
+	cols = rows;                        //Количество столбиков в матрице
+	cout << "Matrix:\n";
+	int** arr = new int* [rows];
+	for (int i = 0; i < rows; i++)
+	{
+		arr[i] = new int[cols];
+	}
+	fill_arr(arr, rows, cols, a, b);
+	red_area_analyze(arr, rows);
+	red_area_show_element(arr, rows, min, imin, jmin);
+	green_area_analyze(arr, cols);
+	green_area_show_element(arr, cols, a, max, imax, jmax);
+	modification(arr, cols, a, max, min, jmax, imax, imin, jmin, rows);
+	delete[] arr;
 
 }
-
-void sys_cin(float** arr, float* y, int length)
-
+void fill_arr(int** arr, int rows, int cols, int a, int b)
 {
-
-	for (size_t i = 0; i < length; i++)
-
+	for (int i = 0; i < rows; i++)
 	{
-
-		arr[i] = new float[length];
-
-		for (size_t j = 0; j < length; j++)
-
+		for (int j = 0; j < cols; j++)
 		{
-
-			cout << "arr[" << i << "][" << j << "]= ";
-
-			cin >> arr[i][j];
-
+			arr[i][j] = a + rand() % (b - a + 1);
+			cout << arr[i][j] << "\t";
 		}
-
+		cout << endl;
 	}
-
-	for (size_t i = 0; i < length; i++)
-
-	{
-
-		cout << "y[" << i << "]=";
-
-		cin >> y[i];
-
-	}
-
 }
-
-void sys_out(float** arr, float* y, int length)
-
+void red_area_analyze(int** arr, int rows)
 {
-
-	for (int i = 0; i < length; i++)
-
+	cout << "Elements above the main diagonal:\n";
+	for (int i = 0; i < rows; i++)
 	{
-
-		for (int j = 0; j < length; j++)
-
+		for (int j = 0; j < rows; j++)
 		{
-
-			cout << arr[i][j] << "*x" << j;
-
-			if (j < length - 1)
-
-				cout << " + ";
-
+			if (i >= rows - j) cout << arr[i][j] << " ";
 		}
-
-		cout << " = " << y[i] << endl;
-
 	}
-
-	return;
-
+	cout << endl;
+	system("pause");
 }
-
-float* gausses_method(float** arr, float* y, int length)
-
+void red_area_show_element(int** arr, int rows, int& min, int& imin, int& jmin)
 {
-
-	float* x, max;
-
-	int k, index;
-
-	const float eps = 0.00001; // точность
-
-	x = new float[length];
-
-	k = 0;
-
-	while (k < length)
-
+	cout << "The minimum positive element: ";
+	for (int i = 0; i < rows; i++)
 	{
-
-		max = abs(arr[k][k]);
-
-		index = k;
-
-		for (int i = k + 1; i < length; i++)
-
+		for (int j = 0; j < rows; j++)
 		{
-
-			if (abs(arr[i][k]) > max)
-
+			if (i >= rows - j)
 			{
+				if (arr[i][j] > 0)
+				{
+					if (arr[i][j] < min)
+					{
+						min = arr[i][j];
+						imin = i;
+						jmin = j;
+					}
+				}
+			}
+		}
+	}
+	if (min > 0 && min != INT_MAX)
+	{
+		cout << min << "\n";; //Вывод минимального положительного числа выше гланой диагонали
+		system("pause");
+	}
+	else {
+		cout << "There aren`t positive elements\n";
+	}
+}
+void green_area_analyze(int** arr, int cols)
+{
+	cout << "Elemets under the main diagonal and above the collateral diagonal:\n";
+	for (int i = 0; i < cols; i++)
+		for (int j = i + 1; j < cols - i - 1; j++)
+		{
+			cout << arr[i][j] << " ";
+		}
+	system("pause");
+}
+void green_area_show_element(int** arr, int cols, int a, int& max, int& imax, int& jmax)
+{
+	cout << "The maximum negative: ";
 
-				max = abs(arr[i][k]);
-
-				index = i;
+	for (int i = 0; i < cols; i++)
+	{
+		for (int j = i + 1; j < cols - i - 1; j++)
+		{
+			if (arr[i][j] < 0)
+			{
+				if (arr[i][j] > max)
+				{
+					max = arr[i][j];
+					imax = i;
+					jmax = j;
+				}
+			}
+		}
+	}
+	cout << max;
+	system("pause");
+}
+void modification(int** arr, int cols, int a, int max, int min, int jmax, int imax, int imin, int jmin, int rows)
+{
+	if (max < 0 && max != a && min > 0 && min != INT_MAX) {
+		cout << "New modified matrix: \n";
+		int extra;
+		extra = arr[imin][jmin];
+		arr[imin][jmin] = arr[imax][jmax];
+		arr[imax][jmax] = extra;
+		for (int i = 0; i < rows; i++)
+		{
+			for (int j = 0; j < cols; j++)
+			{
+				cout << arr[i][j] << "\t";
 
 			}
-
+			cout << endl;
 		}
-
-		// Перестановка строк
-
-		if (max < eps)
-
-		{
-
-			// нет ненулевых диагональных элементов
-
-			cout << "Решение получить невозможно из-за нулевого столбца ";
-
-			cout << index << " матрицы A" << endl;
-
-			return 0;
-
-		}
-
-		for (int j = 0; j < length; j++)
-
-		{
-
-			float temp = arr[k][j];
-
-			arr[k][j] = arr[index][j];
-
-			arr[index][j] = temp;
-
-		}
-
-		float temp = y[k];
-
-		y[k] = y[index];
-
-		y[index] = temp;
-
-		for (int i = k; i < length; i++)
-
-		{
-
-			float temp = arr[i][k];
-
-			if (abs(temp) < eps) continue;
-
-			for (int j = 0; j < length; j++)
-
-				arr[i][j] = arr[i][j] / temp;
-
-			y[i] = y[i] / temp;
-
-			if (i == k) continue;
-
-			for (int j = 0; j < length; j++)
-
-				arr[i][j] = arr[i][j] - arr[k][j];
-
-			y[i] = y[i] - y[k];
-
-		}
-
-		k++;
-
 	}
-
-	for (k = length - 1; k >= 0; k--)
-
+	else if (max >= 0 || max == a)
 	{
-
-		x[k] = y[k];
-
-		for (int i = 0; i < k; i++)
-
-			y[i] = y[i] - arr[i][k] * x[k];
-
+		cout << "No negative elements  under the main diagonal and above the collateral diagonal, change data.";
 	}
-
-	return x;
-
+	else if (min <= 0 || min == INT_MAX)
+	{
+		cout << "No positive elements above the main diagonale, change data.";
+	}
+	else
+	{
+		cout << "No negative elements  under the main diagonal and above the collateral diagonal and No positive elements above the main diagonale.";
+	}
 }
